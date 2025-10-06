@@ -42,7 +42,7 @@ def train(model,
     for epoch in range(epochs):
         model.train()
         running_loss = 0
-        running_dc = 0
+        # running_dc = 0
 
         loop = tqdm(train_set, desc=f"Epoch {epoch+1}/{epochs}", leave=False)
 
@@ -53,16 +53,18 @@ def train(model,
             outputs = model(inputs)
 
             loss = criterion(outputs, labels)
-            # if 
             # dc = dice(outputs, mask)
 
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item() * inputs.size(0)
+            # running_dc += dc.item()
+
             loop.set_postfix(loss=loss.item())
 
         epoch_loss = running_loss / len(train_set.dataset)
+        # epoch_dc = running_dc / len(mask_set.dataset)
         print(f"Epoch {epoch+1}/{epochs} - Train Loss: {epoch_loss:.4f}")
 
         if val_set is not None:
@@ -79,12 +81,15 @@ def evaluate(model,
 
     model.eval()
     total_loss = 0
+    # total_dc = 0
 
     with torch.no_grad():
         for inputs, labels in data_set:
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
+            # dc = dice(outputs, mask)
             total_loss += loss.item() * inputs.size(0)
+            # total_dc += dc.item()
     
     return total_loss/len(data_set.dataset)
