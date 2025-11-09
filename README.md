@@ -24,8 +24,8 @@ The objective of this project is to build robust and generalizable models based 
 2. **Localize** their precise regions within the brain
 3. **Generalize** across multiple imaging modalities, scanners, and acquisition protocols
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Brain_aneurysm_CTA_3D_reconstruction.png" 
-     alt="Brain Aneurysm CTA" width="500"/>
+<img src="examples/unet_archi.png" 
+     alt="UNet Architecture" width="500"/>
 
 <p>
 By <a href="https://commons.wikimedia.org/wiki/User:Crude2refined">Mehrdad Yazdani</a>,
