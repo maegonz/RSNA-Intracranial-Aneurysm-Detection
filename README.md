@@ -11,7 +11,10 @@ This project aims to develop **machine learning and deep learning models** capab
 
 Below are example visualizations from different modalities and model outputs (replace these placeholders with your real images):
 
-![T2 Example](examples/output.png) 
+<p float="left">
+  <img src="examples/output.png" width="300" />
+  <img src="examples/output(2).png" width="300" /> 
+</p>
 
 ## Overview
 
