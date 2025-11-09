@@ -4,7 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import pydicom
 import os
+import cv2
 
+def normalization(image, ):
+    image = (image - np.min(image)) / (np.max(image) - np.min(image))
+    return image
+
+def resize(image, size: tuple):
+    image = cv2.resize(image, size)
+    return image
 
 def recup(init_path: str, series_id: str, image_id: str):
     series_path = init_path + series_id
@@ -14,6 +22,7 @@ def recup(init_path: str, series_id: str, image_id: str):
                 filepath = os.path.join(root, file)
                 ds = pydicom.dcmread(filepath, force=True)
                 img = ds.pixel_array.astype(np.float32)
+                img = normalization(img)
     return img
 
 def coordinates(crd, height, width):
