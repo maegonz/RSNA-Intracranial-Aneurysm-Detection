@@ -40,21 +40,7 @@ The dataset includes **real-world clinical variations** from multiple institutio
 └── README.md          # This document
 ```
 
-## 📊 Evaluation Metrics
-
-* **Dice Coefficient (DICE)**
-
-
 ---
-
-## 🤝 Acknowledgements
-
-Special thanks to:
-
-* **RSNA**, **ASNR**, **SNIS**, **ESNR**
-* All participating clinicians and institutions
-* Open-source contributors advancing medical imaging AI
-
 
 ## License
 
