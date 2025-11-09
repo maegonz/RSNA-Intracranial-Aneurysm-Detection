@@ -24,6 +24,15 @@ The objective of this project is to build robust and generalizable models based 
 2. **Localize** their precise regions within the brain
 3. **Generalize** across multiple imaging modalities, scanners, and acquisition protocols
 
+<img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Brain_aneurysm_CTA_3D_reconstruction.png" 
+     alt="Brain Aneurysm CTA" width="500"/>
+
+<p>
+By <a href="https://commons.wikimedia.org/wiki/User:Crude2refined">Mehrdad Yazdani</a>,
+under the license <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>,
+<a href="https://commons.wikimedia.org/wiki/File:Brain_aneurysm_CTA_3D_reconstruction.png">source</a>.
+</p>
+
 Ultimately, these models could serve as **decision-support tools** to aid radiologists in **early aneurysm detection**, enabling **timely intervention** and **saving lives**.
 
 This project is part of the Kaggle **RSNA Intracranial Aneurysm Detection** challenge, hosted by:
