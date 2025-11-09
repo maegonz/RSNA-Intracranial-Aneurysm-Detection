@@ -1,4 +1,5 @@
 import numpy as np
+import nibabel as nb
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import pydicom
@@ -27,3 +28,9 @@ def imshow(img, xy: tuple, height, width):
     ax.add_patch(rect)
     ax.axis('off')
     plt.show()
+
+def segmentation(init_seg_path: str, series_id: str):
+    seg_path = init_seg_path + series_id
+    file = nb.load(seg_path + '.nii').get_fdata()
+    print(file.shape)
+    return file
