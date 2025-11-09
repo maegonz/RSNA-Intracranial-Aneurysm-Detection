@@ -1,6 +1,6 @@
 # Intracranial Aneurysm Detection
 
-Intracranial aneurysms affect nearly 3% of the global population, yet up to 50% are only diagnosed after a rupture—often leading to severe outcomes or death. Each year, they contribute to approximately 500,000 deaths worldwide, with half of the victims under the age of 50.
+Intracranial aneurysms affect nearly 3% of the global population, yet up to 50% are only diagnosed after a rupture, often leading to severe outcomes or death. Each year, they contribute to approximately 500,000 deaths worldwide, with half of the victims under the age of 50.
 
 This project aims to develop **machine learning and deep learning models** capable of detecting and localizing aneurysms across **multi-modal brain imaging**, including:
 
@@ -12,8 +12,8 @@ This project aims to develop **machine learning and deep learning models** capab
 Below are example visualizations from different modalities and model outputs (replace these placeholders with your real images):
 
 <p float="left">
-  <img src="examples/output.png" width="300" />
-  <img src="examples/output(2).png" width="300" /> 
+  <img src="examples/output.png" height="300" width="300" />
+  <img src="examples/output(2).png" heigth="300" width="300" /> 
 </p>
 
 ## Overview
