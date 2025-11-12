@@ -40,6 +40,7 @@ def imshow(img, xy: tuple, height, width):
 
 def segmentation(init_seg_path: str, series_id: str):
     seg_path = init_seg_path + series_id
-    file = nb.load(seg_path + '.nii').get_fdata()
-    print(file.shape)
-    return file
+    img = nb.load(seg_path + '.nii').get_fdata()
+    mask = nb.load(seg_path + '_cowseg.nii').get_fdata().astype(int)
+    print(img.shape)
+    return img, mask
