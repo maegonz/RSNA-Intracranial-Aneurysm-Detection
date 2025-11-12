@@ -6,9 +6,9 @@ class DoubleConv(nn.Module):
         super().__init__()
         self.operation = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLu(in_place=True),
+            nn.ReLU(in_place=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLu(in_place=True)
+            nn.ReLU(in_place=True)
         )
 
     def forward(self, x):
