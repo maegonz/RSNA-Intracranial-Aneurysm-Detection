@@ -2,12 +2,11 @@ import os
 import pydicom
 import numpy as np
 from PIL import Image
-import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 
 
-class DicomDataset(Dataset):
+class AneurysmDataset(Dataset):
     def __init__(self, dicom_dir, transform=None, normalize='minmax'):
         """
         Args:
