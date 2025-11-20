@@ -6,7 +6,7 @@ import pydicom
 import os
 import cv2
 
-def normalization(image):
+def normalization(image, norm: str='minmax'):
     """
     Normalize an input image to the range [0, 1].
 
@@ -17,13 +17,18 @@ def normalization(image):
     -------
     image : np.ndarray
         The input image to normalize.
+    norm : str
+        Whether normalized the given input with 'minmax' or 'zscore'. Defaults to 'minmax.
 
     Returns
     -------
     np.ndarray
         The normalized image with values in the range [0, 1].
     """
-    image = (image - np.min(image)) / (np.max(image) - np.min(image))
+    if norm == 'zscore':
+        image = (image - np.mean(image)) / (np.std(image))
+    else:
+        image = (image - np.min(image)) / (np.max(image) - np.min(image))
     return image
 
 
