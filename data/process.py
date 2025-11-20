@@ -1,10 +1,13 @@
 import numpy as np
+import pandas as pd
 import nibabel as nb
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import pydicom
 import os
 import cv2
+from typing import Union
+from pathlib import Path
 
 def normalization(image, norm: str='minmax'):
     """
@@ -120,3 +123,65 @@ def segmentation(init_seg_path: str, Series_UID: str):
     mask = nb.load(seg_path + '_cowseg.nii').get_fdata().astype(int)
     print(img.shape)
     return img, mask
+
+def get_modality(df: pd.DataFrame, Series_UID: Union[str, Path]):
+    """
+    Return the modality type between 'CT', 'MRA', 'MRI T1 post', 'MRI T2'.
+
+    Params
+    -------
+    df: pd.DataFrame
+        Dataframe which contain information.
+    Series_UID: str or Path
+        Series ID modality information is needed.
+
+    Returns
+    -------
+    modality: str
+        Identifies the mode of imaging.
+    """
+    if isinstance(Series_UID, Path):
+        Series_UID = Series_UID.name
+    else:
+        pass
+    modality = df.loc[df['SeriesInstanceUID'] == Series_UID, 'Modality']
+
+    if not modality.empty:
+        modality = modality.values[0]
+        return modality
+    else:
+        print("SeriesInsctaneUID not found.")
+        return None
+
+def get_aneurysm_present(df: pd.DataFrame, Series_UID: Union[str, Path]):
+    """
+    Return whether aneurysm is present 1 or not 0.
+
+    Params
+    -------
+    df: pd.DataFrame
+        Dataframe which contain information.
+    Series_UID: str or Path
+        Series ID aneurysm present information is needed.
+
+    Returns
+    -------
+    aneurysm_present: int
+        Identifies the mode of imaging.
+    """
+    if isinstance(Series_UID, Path):
+        Series_UID = Series_UID.name
+    else:
+        pass
+    
+    presence = df.loc[df['SeriesInstanceUID'] == Series_UID, 'Category']
+
+    if presence.empty:
+        print("SeriesInsctaneUID not found.")
+        return None
+    else:
+        presence = presence.values[0]
+        if presence != 0:
+            return 1
+        else:
+            return 0
