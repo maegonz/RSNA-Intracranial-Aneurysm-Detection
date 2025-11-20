@@ -1,50 +1,75 @@
+"""
+Class and get function implementations based on Rajveer Jadhav code, named muichimon on Kaggle and github.
+Linked to his Github : https://github.com/muichi-mon
+"""
+import numpy as np
+import pandas as pd
+import torch
 import os
 import pydicom
-import numpy as np
-from PIL import Image
-from torch.utils.data import Dataset
 import torchvision.transforms as transforms
-
+from PIL import Image
+from pathlib import Path
+from torch.utils.data import Dataset
+from process import get_aneurysm_present, get_modality, normalization
+from sklearn.model_selection import train_test_split
 
 class AneurysmDataset(Dataset):
-    def __init__(self, dicom_dir, transform=None, normalize='minmax'):
+    def __init__(self,
+                 series_dir: str,
+                 train_df: pd.DataFrame,
+                 val_size: float=0.2,
+                 transform=None, 
+                 normalize: str='minmax'):
         """
-        Args:
-            dicom_dir (str): Directory with all the DICOM files.
-            transform (callable, optional): Optional transform to be applied on a sample.
-            normalize (str): Type of normalization: 'minmax' or 'zscore'
+        Params
+        -------
+        series_dir : str
+            Directory with all the training-set series instances folders.
+        transform : Optional
+            Transform to be applied on a sample.
+        normalize : str
+            Type of normalization, 'minmax' or 'zscore'
         """
-        self.dicom_dir = dicom_dir
-        self.file_list = [f for f in os.listdir(dicom_dir) if f.endswith('.dcm')]
+        self.df = train_df
+
+        # path of the series directory
+        # .../series/
+        self.series_dir = Path(series_dir)
+
+        train_dirs, val_dirs = train_test_split(train_df, test_size=val_size, shuffle=True, random_state=0)
+        
+        # list of paths of the series instance
+        # .../series/SeriesInstanceUID/
+        self.series_instance_list = sorted([s for s in self.series_dir.iterdir() if s.is_dir()])  
+       
         self.transform = transform
         self.normalize = normalize
 
+
     def __len__(self):
-        return len(self.file_list)
+        return len(self.series_dir)
 
-    def __getitem__(self, idx):
-        dcm_path = os.path.join(self.dicom_dir, self.file_list[idx])
-        dcm = pydicom.dcmread(dcm_path)
-        img = dcm.pixel_array.astype(np.float32)
+    def __getitem__(self, id):
+        path_series_id = self.series_instance_list[id]
+        series_uid = path_series_id.name
 
-        # Normalization
-        if self.normalize == 'minmax':
-            img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-5)
-        elif self.normalize == 'zscore':
-            img = (img - np.mean(img)) / (np.std(img) + 1e-5)
-        else:
-            raise ValueError("normalize must be 'minmax' or 'zscore'")
+        # Load DICOM slices
+        dicom_files = list(path_series_id.glob('*.dcm'))
+        dicoms = [pydicom.dcmread(file) for file in dicom_files]
+        dicoms.sort(key=lambda dcm: int(dcm.InstanceNumber))
 
-        # Convert to PIL image (grayscale mode)
-        img = Image.fromarray((img * 255).astype(np.uint8)).convert('L')
+        slices = [dcm.pixel_array.astype(np.float32) for dcm in dicoms]
 
-        # Define default transform if not provided
-        if self.transform is None:
-            self.transform = transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.ToTensor(),  # Converts to [0,1] and adds channel dimension
-            ])
+        # Slices stacked into 3D volume
+        volume = np.stack(slices, axis=-1)  # [H, W, D]
+        volume = torch.from_numpy(volume).unsqueeze(0).float()  # [1, H, W, D]
 
-        img_tensor = self.transform(img)  # Shape: [1, 224, 224]
+        label = get_aneurysm_present(df=self.df, Series_UID=series_uid)
+        modality = get_modality(df=self.df, Series_UID=series_uid)
 
-        return img_tensor
+        return {
+            "image": volume,
+            "label": label,
+            "modality": modality,
+        }
