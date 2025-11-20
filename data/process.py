@@ -14,11 +14,28 @@ def resize(image, size: tuple):
     image = cv2.resize(image, size)
     return image
 
-def recup(init_path: str, series_id: str, image_id: str):
-    series_path = init_path + series_id
+def recup(init_path: str, Series_UID: str, SOP_UID: str):
+    """
+    Return a specific image, identified by SOP_UID, from the series identified by Series_UID.
+
+    Params
+    ----------
+    init_path : str
+        The root directory or initial path containing the DICOM data.
+    Series_UID : str
+        The UID of the series from which the image will be retrieved.
+    SOP_UID : str
+        The UID of the image within the specified series.
+
+    Returns
+    -------
+    img : np.ndarray
+        The requested image as a numpy array.
+    """
+    series_path = init_path + Series_UID
     for root, _, files in os.walk(series_path):
         for file in files:
-            if file == (image_id + '.dcm'):
+            if file == (SOP_UID + '.dcm'):
                 filepath = os.path.join(root, file)
                 ds = pydicom.dcmread(filepath, force=True)
                 img = ds.pixel_array.astype(np.float32)
@@ -38,8 +55,8 @@ def imshow(img, xy: tuple, height, width):
     ax.axis('off')
     plt.show()
 
-def segmentation(init_seg_path: str, series_id: str):
-    seg_path = init_seg_path + series_id
+def segmentation(init_seg_path: str, Series_UID: str):
+    seg_path = init_seg_path + Series_UID
     img = nb.load(seg_path + '.nii').get_fdata()
     mask = nb.load(seg_path + '_cowseg.nii').get_fdata().astype(int)
     print(img.shape)
