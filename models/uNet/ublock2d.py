@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
-class DoubleConv(nn.Module):
+class DoubleConv2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
-        super(DoubleConv, self).__init__()
+        super(DoubleConv2d, self).__init__()
         self.operation = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
@@ -16,10 +16,10 @@ class DoubleConv(nn.Module):
         return y
     
 
-class EncodeSample(nn.Module):
+class Encoder2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
-        super(EncodeSample, self).__init__()
-        self.conv = DoubleConv(in_channels, out_channels)
+        super(Encoder2d, self).__init__()
+        self.conv = DoubleConv2d(in_channels, out_channels)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, )
 
     def forward(self, x):
@@ -28,11 +28,11 @@ class EncodeSample(nn.Module):
         return c, p
     
 
-class DecodeSample(nn.Module):
+class Decoder2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
-        super(DecodeSample, self).__init__()
+        super(Decoder2d, self).__init__()
         self.deconv = nn.ConvTranspose2d(in_channels, in_channels//2, kernel_size=2, stride=2)
-        self.conv = DoubleConv(in_channels, out_channels)
+        self.conv = DoubleConv2d(in_channels, out_channels)
 
     def forward(self, t1, t2):
         t1 = self.deconv(t1)
