@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 
-from uencoder import DoubleConv, EncodeSample
-from udecoder import DecodeSample
+from ublock import DoubleConv, EncodeSample, DecodeSample
 
 class UNet(nn.Module):
     def __init__(self, in_channels: int, num_classes: int):

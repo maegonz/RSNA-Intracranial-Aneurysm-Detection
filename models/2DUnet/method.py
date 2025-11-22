@@ -39,32 +39,31 @@ def train(model,
 
     model = model.to(device)
 
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         model.train()
         running_loss = 0
-        # running_dc = 0
+        running_dc = 0
 
         loop = tqdm(train_set, desc=f"Epoch {epoch+1}/{epochs}", leave=False)
 
-        for inputs, labels in loop:
-            inputs, labels = inputs.to(device), labels.to(device)
+        for idx, img_mask in enumerate(loop):
+            img, mask = img_mask[0].float().to(device), img_mask[1].float.to(device)
 
+            pred = model(img)
             optimizer.zero_grad()
-            outputs = model(inputs)
 
-            loss = criterion(outputs, labels)
-            # dc = dice(outputs, mask)
+            dc = dice(pred, mask)
+            loss = criterion(pred, mask)
 
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item() * inputs.size(0)
-            # running_dc += dc.item()
+            running_loss += loss.item()
+            running_dc += dc.item()
 
-            loop.set_postfix(loss=loss.item())
 
         epoch_loss = running_loss / len(train_set.dataset)
-        # epoch_dc = running_dc / len(mask_set.dataset)
+        epoch_dc = running_dc / len(train_set.dataset)
         print(f"Epoch {epoch+1}/{epochs} - Train Loss: {epoch_loss:.4f}")
 
         if val_set is not None:

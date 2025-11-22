@@ -26,3 +26,17 @@ class EncodeSample(nn.Module):
         c = self.conv(x)
         p = self.pool(c)
         return c, p
+    
+
+class DecodeSample(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int):
+        super(DecodeSample, self).__init__()
+        self.deconv = nn.ConvTranspose2d(in_channels, in_channels//2, kernel_size=2, stride=2)
+        self.conv = DoubleConv(in_channels, out_channels)
+
+    def forward(self, t1, t2):
+        t1 = self.deconv(t1)
+        
+        x = torch.cat([t1, t2], 1)
+        y = self.conv(x)
+        return y
