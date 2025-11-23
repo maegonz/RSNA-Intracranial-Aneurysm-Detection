@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-def dice(pred, target, epsilon=1e-07):
+def dice(pred, mask, epsilon=1e-07):
     """
     DICE metric provides a measure of the similarity between the predicted segmentation
     and the ground truth segmentation.
@@ -20,11 +21,26 @@ def dice(pred, target, epsilon=1e-07):
     pred_copy[pred_copy < 0] = 0
     pred_copy[pred_copy > 1] = 1
 
-    intersection = abs(torch.sum(pred_copy* target))
-    union = abs(torch.sum(pred_copy) + torch.sum(target))
+    intersection = abs(torch.sum(pred_copy* mask))
+    union = abs(torch.sum(pred_copy) + torch.sum(mask))
     coeff = (2 * intersection + epsilon) / (union + epsilon)
+    dice = 1 - coeff
 
-    return coeff
+    return dice
+
+# def train_step(model,
+#                volume,
+#                label,
+#                mask=None):
+    
+#     clf_logits, seg_pred = model(volume)
+
+#     clf_loss = F.binary_cross_entropy_with_logits(clf_logits, label.float())
+
+#     if mask is not None:
+#         bce = F.binary_cross_entropy(seg_pred, mask)
+#         dice = dice(seg_pred, mask)
+#         seg_loss = bce + dice
 
 def train(model,
          train_set: DataLoader,
