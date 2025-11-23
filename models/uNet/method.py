@@ -7,19 +7,26 @@ from tqdm import tqdm
 
 def dice_loss(pred, mask, epsilon=1e-07):
     """
-    DICE metric provides a measure of the similarity between the predicted segmentation
-    and the ground truth segmentation.
+    Computes the Dice loss between predicted segmentation probabilities and
+    a binary ground-truth mask.
+
+    Dice score ranges from 0 to 1 and measures the overlap between two sets.
+    Dice *loss* is defined as `1 - dice_score`.
 
     Params
     -------
-    pred
+    pred : torch.Tensor
+        Predicted segmentation map with values ideally in [0, 1].
+        Shape: (N, C, D, H, W) or similar.
+    mask : torch.Tensor
+        Ground-truth binary mask with the same shape as `pred`.
+    epsilon : float, optional
+        Small constant added for numerical stability. Default is 1e-07.
 
-    mask
-    
     Returns
     -------
-    dice: float
-        Float between [0;1]
+    torch.Tensor
+        Scalar tensor representing Dice loss (float in [0, 1]).
     """
 
     pred_copy = pred.clone()
@@ -37,6 +44,30 @@ def train_step(model,
                volume,
                label,
                mask=None):
+    """
+    Performs a single forward-backward optimization step for a multi-task model
+    performing classification and optional segmentation.
+
+    Params
+    -------
+    model : nn.Module
+        Model returning (classification_logits, segmentation_prediction).
+    volume : torch.Tensor
+        Input 3D volume batch, e.g. shape (N, C, D, H, W).
+    label : torch.Tensor
+        Binary classification labels for the batch.
+    mask : torch.Tensor or None, optional
+        Ground-truth segmentation mask. If None, segmentation loss is skipped.
+
+    Returns
+    -------
+    total_loss : torch.Tensor
+        Sum of classification loss and (optional) segmentation loss.
+    clf_loss : torch.Tensor
+        Classification loss component.
+    dc : torch.Tensor or float
+        Dice loss component. Zero if mask is None.
+    """
     clf_logits, seg_pred = model(volume)
     clf_loss = F.binary_cross_entropy_with_logits(clf_logits, label)
 
@@ -57,7 +88,28 @@ def train(model,
          epochs,
          val_dl: DataLoader=None):
     """
-    Train a PyTorch model
+    Trains a PyTorch model over multiple epochs.
+
+    Params
+    -------
+    model : nn.Module
+        Model to be trained.
+    train_dl : DataLoader
+        Dataloader providing training batches. Items must contain
+        keys: 'volume', 'label', and 'mask'.
+    optimizer : torch.optim.Optimizer
+        Optimizer responsible for updating model parameters.
+    device : str or torch.device
+        Computing device ('cpu' or 'cuda').
+    epochs : int
+        Number of training epochs.
+    val_dl : DataLoader or None, optional
+        Optional validation dataloader. If provided, validation loss is evaluated
+        at the end of each epoch.
+
+    Returns
+    -------
+    None
     """
 
     model = model.to(device)
@@ -96,7 +148,21 @@ def evaluate(model,
              data_loader: DataLoader,
              device):
     """
-    Evaluate the model on a dataset.
+    Evaluates the model on a dataset using classification loss only.
+
+    Params
+    -------
+    model : nn.Module
+        Model to evaluate.
+    data_loader : DataLoader
+        Dataloader providing evaluation batches.
+    device : str or torch.device
+        Device on which tensors should be executed.
+
+    Returns
+    -------
+    float
+        Mean classification loss over the dataset.
     """
 
     model.eval()
