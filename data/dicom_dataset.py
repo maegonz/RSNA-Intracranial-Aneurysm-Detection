@@ -1,7 +1,3 @@
-"""
-Class and get function implementations based on Rajveer Jadhav code, named muichimon on Kaggle and github.
-Linked to his Github : https://github.com/muichi-mon
-"""
 import numpy as np
 import pandas as pd
 import nibabel as nb
@@ -45,8 +41,12 @@ class AneurysmDataset(Dataset):
 
         # path of segmentations directory
         # ../segmentation/
-        self.seg_dir = seg_dir
+        self.seg_dir = Path(seg_dir)
 
+        # list of paths of the segmentation files
+        # ../segmentation/SeriesInstanceUID
+        self.seg_list = sorted([p for p in self.seg_dir.iterdir() if p.suffix=='.nii' and not p.name.endswith('_cowseg.nii')])
+        self.seg_dict = {p.name: p for p in self.seg_list}
 
     def __len__(self):
         return len(self.series_instance_list)
@@ -55,11 +55,17 @@ class AneurysmDataset(Dataset):
         path_series_id = self.series_instance_list[id]
         # Series UID (e.g, '1.2.826.0.1.3680043.8.498.28151846385510404823380448236003102416')
         series_uid = path_series_id.name
+        
+        path_seg_id = self.seg_dict.get(f"{series_uid}.nii", False)
 
+        if path_seg_id:
+            mask = self._load_mask(path_series_id)
+        else:
+            mask = None
+        
         volume = self._load_volume(path_series_id)
         label = get_aneurysm_present(df=self.df, Series_UID=series_uid)
         modality = get_modality(df=self.df, Series_UID=series_uid)
-        mask = self._load_mask(path_series_id)
 
         return {
             "volume": volume,
