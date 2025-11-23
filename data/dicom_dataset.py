@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 import pydicom
 from pathlib import Path
+from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader, Subset
 from process import get_aneurysm_present, get_modality
 from sklearn.model_selection import train_test_split
@@ -70,6 +71,14 @@ class AneurysmDataset(Dataset):
                 volume = (volume - mean) / std
 
         volume = torch.from_numpy(volume).unsqueeze(0).float()  # [1, H, W, D]
+        volume = volume.unsqueeze(0)  # [N, Channels, Height, Width, Depth]
+        volume = F.interpolate(
+            volume,
+            size=(256, 256, 96),  # [D, H, W]
+            mode='trilinear',
+            align_corners=False
+        )
+        volume = volume.permute(0, 1, 4, 2, 3)  # [N, Channels, Depth, Height, Width]
         return volume
 
 
@@ -91,7 +100,7 @@ class AneurysmDataset(Dataset):
     
     def split(self,
               val_size: float=0.2,
-              batch_size: int=2,
+              batch_size: int=1,
               num_workers: int=4,
               shuffle: bool=True):
         """
