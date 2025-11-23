@@ -4,6 +4,7 @@ Linked to his Github : https://github.com/muichi-mon
 """
 import numpy as np
 import pandas as pd
+import nibabel as nb
 import torch
 import pydicom
 from pathlib import Path
@@ -16,6 +17,7 @@ from sklearn.model_selection import train_test_split
 class AneurysmDataset(Dataset):
     def __init__(self,
                  series_dir: str,
+                 seg_dir: str,
                  dataframe: pd.DataFrame,
                  transform=None, 
                  normalize: str='minmax'):
@@ -41,10 +43,32 @@ class AneurysmDataset(Dataset):
         # .../series/SeriesInstanceUID/
         self.series_instance_list = sorted([s for s in self.series_dir.iterdir() if s.is_dir()])
 
+        # path of segmentations directory
+        # ../segmentation/
+        self.seg_dir = seg_dir
+
 
     def __len__(self):
         return len(self.series_instance_list)
 
+    def __getitem__(self, id: int):
+        path_series_id = self.series_instance_list[id]
+        # Series UID (e.g, '1.2.826.0.1.3680043.8.498.28151846385510404823380448236003102416')
+        series_uid = path_series_id.name
+
+        volume = self._load_volume(path_series_id)
+        label = get_aneurysm_present(df=self.df, Series_UID=series_uid)
+        modality = get_modality(df=self.df, Series_UID=series_uid)
+        mask = self._load_mask(path_series_id)
+
+        return {
+            "volume": volume,
+            "label": label,
+            "mask": mask,
+            "modality": modality,
+            "uid": series_uid
+        }
+    
     def _load_volume(self, path_series_id: Path):
         """
         Loads and stacks all DICOM slices into a 3D tensor.
@@ -58,6 +82,10 @@ class AneurysmDataset(Dataset):
         slices = [dcm.pixel_array.astype(np.float32) for dcm in dicoms]
         volume = np.stack(slices, axis=-1)  # [H, W, D]
 
+        volume = self._transform_volume(volume)  # [1, 1, D, H, W]
+        return volume
+
+    def _transform_volume(self, volume):
         # Volume normalization
         if self.normalize == "minmax":
             vmin, vmax = volume.min(), volume.max()
@@ -80,23 +108,17 @@ class AneurysmDataset(Dataset):
         )
         volume = volume.permute(0, 1, 4, 2, 3)  # [N, Channels, Depth, Height, Width]
         return volume
+    
+    def _load_mask(self, path_seg_id: Path):
+        path_seg_id = str(path_seg_id)
 
+        img = nb.load(path_seg_id + '.nii').get_fdata()
+        img = self._transform_volume(img)
 
-    def __getitem__(self, id: int):
-        path_series_id = self.series_instance_list[id]
-        # Series UID (e.g, '1.2.826.0.1.3680043.8.498.28151846385510404823380448236003102416')
-        series_uid = path_series_id.name
+        mask = nb.load(path_seg_id + '_cowseg.nii').get_fdata().astype(int)
+        mask = self._transform_volume(mask)
 
-        volume = self._load_volume(path_series_id)
-        label = get_aneurysm_present(df=self.df, Series_UID=series_uid)
-        modality = get_modality(df=self.df, Series_UID=series_uid)
-
-        return {
-            "volume": volume,
-            "label": label,
-            "modality": modality,
-            "uid": series_uid
-        }
+        return img, mask
     
     def split(self,
               val_size: float=0.2,
