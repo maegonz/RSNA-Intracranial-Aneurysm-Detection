@@ -58,12 +58,13 @@ class AneurysmDataset(Dataset):
         
         path_seg_id = self.seg_dict.get(f"{series_uid}.nii", False)
 
+        volume = self._load_volume(path_series_id)
+        
         if path_seg_id:
             mask = self._load_mask(path_series_id)
         else:
-            mask = None
+            mask = torch.zeros(volume.shape, dtype=volume.dtype)
         
-        volume = self._load_volume(path_series_id)
         label = get_aneurysm_present(df=self.df, Series_UID=series_uid)
         modality = get_modality(df=self.df, Series_UID=series_uid)
 
